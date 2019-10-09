@@ -1,54 +1,61 @@
-#include <stdio.h>
-#include "libft.h"
-#include "ft_strdup.c"
-#include "ft_strnew.c"
-#include "ft_strlen.c"
-#include "ft_strjoin.c"
-#include "ft_strlcat.c"
-#include "ft_strchr.c"
-#include <fcntl.h>
-# define BUFF_SIZE 10000
 
- int get_next_line(const int fd, char **line)
+#include "get_next_line.h"
+
+char    *ch_segment(char *segment, char **line)
 {
-    char buf[BUFF_SIZE + 1];
-    char *pointer;
-    int was_read;
-    static char *segment;
+    char    *pointer;
 
+    pointer = NULL;
     if (segment)
-        *line = ft_strdup(segment);
+        if ((pointer = ft_strchr(segment, '\n')))
+        {
+            *pointer = '\0';
+            *line = ft_strdup(segment);
+            ft_strcpy(segment, ++pointer);
+        }
+        else
+        {
+            *line = ft_strdup(segment);
+            ft_strclr(segment);
+        }
     else
         *line = ft_strnew(1);
-    while ((was_read = read(fd, buf, BUFF_SIZE)))
-    {
-        buf[was_read] = '\0';
-        if ((*pointer = *ft_strchr(buf, '\n')))
-        {
-                *pointer = '\0';
-                *line = ft_strjoin(*line, buf);
-                segment = ft_strdup (++pointer);
-                break;
-        }
-        *line = ft_strjoin(*line, buf);
-    }
-    return (0);
+    return (pointer);
 }
 
-int main()
+ int    get_next_line(const int fd, char **line)
+{
+    char        buf[BUFF_SIZE + 1];
+    char        *pointer;
+    int         was_read;
+    static char *segment;
+    char        *tmp;
+
+    if (!line || fd < 0 || read (fd, buf, 0) < 0)
+        return( -1);
+    pointer = ch_segment(segment, line);
+    while (!pointer && (was_read = read(fd, buf, BUFF_SIZE)))
+    {
+        buf[was_read] = '\0';
+        if ((pointer = ft_strchr(buf, '\n')))
+        {
+                *pointer = '\0';
+                segment = ft_strdup(++pointer);
+        }
+        tmp = *line;
+        *line = ft_strjoin(*line, buf);
+        free(tmp);
+    }
+    return (was_read || ft_strlen(*line)) ? 1 : 0;
+}
+
+/*int main(void)
 {
     char *line;
     int fd;
     fd = open("text.txt", O_RDONLY);
-    get_next_line(fd, &line);
-    printf ("%s\n", line);
-    get_next_line(fd, &line);
-    printf ("%s\n", line);
-    get_next_line(fd, &line);
-    printf ("%s\n", line);
-    get_next_line(fd, &line);
-    printf ("%s\n", line);
-    get_next_line(fd, &line);
-    printf ("%s\n", line);
+    while (get_next_line(fd, &line))
+        printf ("%s\n", line);
     return(0);
 }
+*/

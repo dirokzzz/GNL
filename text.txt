@@ -1,0 +1,1 @@
+If you choose to submit this project using your library libft, it is strictly
